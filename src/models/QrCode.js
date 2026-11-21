@@ -13,11 +13,12 @@ const SORTABLE = {
  * Model responsavel por tudo que toca a tabela `qrcodes`.
  */
 const QrCode = {
-  async create({ code, title, description, targetUrl, color, sizeCm }) {
+  async create({ code, type, title, description, targetUrl, pixKey, pixKeyKind, pixName, pixCity, pixPayload, color, sizeCm }) {
     const result = await query(
-      `INSERT INTO qrcodes (code, title, description, target_url, color, size_cm)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [code, title, description, targetUrl, color, sizeCm]
+      `INSERT INTO qrcodes
+         (code, type, title, description, target_url, pix_key, pix_key_kind, pix_name, pix_city, pix_payload, color, size_cm)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [code, type, title, description, targetUrl, pixKey, pixKeyKind, pixName, pixCity, pixPayload, color, sizeCm]
     );
     return result.insertId;
   },
@@ -85,12 +86,14 @@ const QrCode = {
     return Number(rows[0].total);
   },
 
-  async update(id, { title, description, targetUrl, color, sizeCm }) {
+  async update(id, { type, title, description, targetUrl, pixKey, pixKeyKind, pixName, pixCity, pixPayload, color, sizeCm }) {
     await query(
       `UPDATE qrcodes
-          SET title = ?, description = ?, target_url = ?, color = ?, size_cm = ?
+          SET type = ?, title = ?, description = ?, target_url = ?,
+              pix_key = ?, pix_key_kind = ?, pix_name = ?, pix_city = ?, pix_payload = ?,
+              color = ?, size_cm = ?
         WHERE id = ?`,
-      [title, description, targetUrl, color, sizeCm, id]
+      [type, title, description, targetUrl, pixKey, pixKeyKind, pixName, pixCity, pixPayload, color, sizeCm, id]
     );
   },
 

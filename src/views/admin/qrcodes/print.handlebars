@@ -22,7 +22,12 @@
            style="width: {{qrcode.size_cm}}cm; height: {{qrcode.size_cm}}cm;">
     </div>
     <p class="print-sheet__label">{{qrcode.title}}</p>
-    <p class="print-sheet__url">{{scanUrl}}</p>
+    {{#unless isPix}}
+      <p class="print-sheet__url">{{scanUrl}}</p>
+    {{/unless}}
+    {{#if isPix}}
+      <p class="print-sheet__url">Pix &middot; aponte a camera do banco</p>
+    {{/if}}
   </div>
 
   <script src="/js/print.js" defer></script>

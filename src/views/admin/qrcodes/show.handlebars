@@ -1,10 +1,18 @@
-{{#unless qrcode.target_url}}
+{{#if isPix}}
   <div class="alert alert--warn">
-    <strong>Destino ainda nao configurado.</strong>
-    Esta plaquinha ja pode ser impressa, mas quem escanear vera um aviso ate voce definir o link.
-    <a class="link" href="/admin/qrcodes/{{qrcode.id}}/editar">Configurar destino agora</a>
+    <strong>QR Code Pix.</strong>
+    Este QR carrega o proprio codigo Pix do banco: quem pagar nao passa pelo sistema.
+    Se voce mudar a chave, sera preciso <strong>reimprimir a placa</strong>.
   </div>
-{{/unless}}
+{{else}}
+  {{#unless qrcode.target_url}}
+    <div class="alert alert--warn">
+      <strong>Destino ainda nao configurado.</strong>
+      Esta plaquinha ja pode ser impressa, mas quem escanear vera um aviso ate voce definir o link.
+      <a class="link" href="/admin/qrcodes/{{qrcode.id}}/editar">Configurar destino agora</a>
+    </div>
+  {{/unless}}
+{{/if}}
 
 <div class="detail-head">
   <div>
@@ -12,6 +20,11 @@
     {{#if qrcode.description}}<p class="is-muted">{{qrcode.description}}</p>{{/if}}
   </div>
   <div class="detail-head__badges">
+    {{#if isPix}}
+      <span class="badge badge--pix">Pix</span>
+    {{else}}
+      <span class="badge badge--neutral">Link</span>
+    {{/if}}
     {{#if qrcode.active}}
       <span class="badge badge--on">Ativo</span>
     {{else}}
@@ -28,23 +41,56 @@
 
       <div class="panel__body">
         <dl class="definition">
-          <div>
-            <dt>Link de destino</dt>
-            <dd>
-              {{#if qrcode.target_url}}
-                <a class="link" href="{{qrcode.target_url}}" target="_blank" rel="noopener noreferrer">{{qrcode.target_url}}</a>
-              {{else}}
-                <span class="badge badge--warn">Nao configurado</span>
-              {{/if}}
-            </dd>
-          </div>
-          <div>
-            <dt>Link que o QR carrega</dt>
-            <dd>
-              <span class="mono">{{scanUrl}}</span>
-              <button type="button" class="btn btn--ghost btn--xs" data-copy="{{scanUrl}}">Copiar</button>
-            </dd>
-          </div>
+          {{#if isPix}}
+            <div>
+              <dt>Chave Pix</dt>
+              <dd>
+                <span class="mono">{{qrcode.pix_key}}</span>
+                <span class="badge badge--neutral">{{pixKeyKindLabel}}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Recebedor</dt>
+              <dd>{{qrcode.pix_name}}</dd>
+            </div>
+            <div>
+              <dt>Cidade</dt>
+              <dd>{{qrcode.pix_city}}</dd>
+            </div>
+            <div>
+              <dt>Pix copia e cola</dt>
+              <dd>
+                <span class="mono mono--break">{{qrContent}}</span>
+                <button type="button" class="btn btn--ghost btn--xs" data-copy="{{qrContent}}">Copiar</button>
+              </dd>
+            </div>
+            <div>
+              <dt>Pagina publica</dt>
+              <dd>
+                <a class="link mono" href="/p/{{qrcode.code}}" target="_blank" rel="noopener">{{publicUrl}}</a>
+                <button type="button" class="btn btn--ghost btn--xs" data-copy="{{publicUrl}}">Copiar</button>
+              </dd>
+            </div>
+          {{else}}
+            <div>
+              <dt>Link de destino</dt>
+              <dd>
+                {{#if qrcode.target_url}}
+                  <a class="link" href="{{qrcode.target_url}}" target="_blank" rel="noopener noreferrer">{{qrcode.target_url}}</a>
+                {{else}}
+                  <span class="badge badge--warn">Nao configurado</span>
+                {{/if}}
+              </dd>
+            </div>
+            <div>
+              <dt>Link que o QR carrega</dt>
+              <dd>
+                <span class="mono">{{scanUrl}}</span>
+                <button type="button" class="btn btn--ghost btn--xs" data-copy="{{scanUrl}}">Copiar</button>
+              </dd>
+            </div>
+          {{/if}}
+
           <div>
             <dt>Codigo</dt>
             <dd><span class="mono mono--lg">{{qrcode.code}}</span></dd>
@@ -77,13 +123,18 @@
 
       <div class="panel__body">
         <div class="row-actions row-actions--wrap">
-          <a class="btn btn--primary" href="/admin/qrcodes/{{qrcode.id}}/editar">Editar destino e aparencia</a>
+          <a class="btn btn--primary" href="/admin/qrcodes/{{qrcode.id}}/editar">
+            {{#if isPix}}Editar chave e aparencia{{else}}Editar destino e aparencia{{/if}}
+          </a>
           <a class="btn btn--ghost" href="/admin/qrcodes/{{qrcode.id}}/download.png">Baixar PNG (300 dpi)</a>
           <a class="btn btn--ghost" href="/admin/qrcodes/{{qrcode.id}}/imprimir" target="_blank" rel="noopener">Abrir folha de impressao</a>
+          {{#if isPix}}
+            <a class="btn btn--ghost" href="/p/{{qrcode.code}}" target="_blank" rel="noopener">Ver pagina publica</a>
+          {{/if}}
 
           <form method="post" action="/admin/qrcodes/{{qrcode.id}}/status">
             <button type="submit" class="btn btn--ghost">
-              {{#if qrcode.active}}Pausar redirecionamento{{else}}Reativar redirecionamento{{/if}}
+              {{#if qrcode.active}}Pausar leitura{{else}}Reativar leitura{{/if}}
             </button>
           </form>
 

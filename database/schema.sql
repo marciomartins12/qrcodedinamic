@@ -32,9 +32,15 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `qrcodes` (
   `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `code`          VARCHAR(16) NOT NULL,          -- codigo curto que vai na URL publica
+  `type`          ENUM('link','pix') NOT NULL DEFAULT 'link', -- link redireciona; pix e o codigo de pagamento
   `title`         VARCHAR(150) NOT NULL,         -- identificacao da plaquinha
   `description`   VARCHAR(255) NULL DEFAULT NULL,
   `target_url`    VARCHAR(2048) NULL DEFAULT NULL, -- destino do redirecionamento (pode ser definido depois)
+  `pix_key`       VARCHAR(77) NULL DEFAULT NULL,  -- chave Pix (CPF, CNPJ, e-mail, telefone ou aleatoria)
+  `pix_key_kind`  VARCHAR(12) NULL DEFAULT NULL,  -- tipo da chave detectado
+  `pix_name`      VARCHAR(25) NULL DEFAULT NULL,  -- nome do recebedor (limite do padrao EMV)
+  `pix_city`      VARCHAR(15) NULL DEFAULT NULL,  -- cidade do recebedor (limite do padrao EMV)
+  `pix_payload`   VARCHAR(512) NULL DEFAULT NULL, -- BR Code gerado (o que vai dentro do QR)
   `color`         CHAR(7) NOT NULL DEFAULT '#000000',
   `size_cm`       DECIMAL(5,2) NOT NULL DEFAULT 5.00,
   `active`        TINYINT(1) NOT NULL DEFAULT 1,
@@ -45,6 +51,7 @@ CREATE TABLE IF NOT EXISTS `qrcodes` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_qrcodes_code` (`code`),
   KEY `idx_qrcodes_active` (`active`),
+  KEY `idx_qrcodes_type` (`type`),
   KEY `idx_qrcodes_clicks` (`clicks`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

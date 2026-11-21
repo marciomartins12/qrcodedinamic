@@ -44,19 +44,32 @@
             <tr>
               <td>
                 <a class="table__title" href="/admin/qrcodes/{{this.id}}">{{this.title}}</a>
+                {{#ifEq this.type "pix"}}
+                  <span class="badge badge--pix">Pix</span>
+                {{/ifEq}}
                 {{#if this.description}}
                   <small class="table__sub">{{truncate this.description 48}}</small>
                 {{/if}}
               </td>
 
               <td>
-                <button type="button" class="chip" data-copy="{{../appUrl}}/r/{{this.code}}" title="Copiar link de leitura">
-                  <span class="mono">{{this.code}}</span>
-                </button>
+                {{#ifEq this.type "pix"}}
+                  <button type="button" class="chip" data-copy="{{this.pix_payload}}" title="Copiar codigo Pix">
+                    <span class="mono">{{this.code}}</span>
+                  </button>
+                {{else}}
+                  <button type="button" class="chip" data-copy="{{../appUrl}}/r/{{this.code}}" title="Copiar link de leitura">
+                    <span class="mono">{{this.code}}</span>
+                  </button>
+                {{/ifEq}}
               </td>
 
               <td class="is-muted">
-                {{#if this.target_url}}{{shortUrl this.target_url 38}}{{else}}<span class="badge badge--warn">Sem destino</span>{{/if}}
+                {{#ifEq this.type "pix"}}
+                  Chave Pix
+                {{else}}
+                  {{#if this.target_url}}{{shortUrl this.target_url 38}}{{else}}<span class="badge badge--warn">Sem destino</span>{{/if}}
+                {{/ifEq}}
               </td>
               <td class="is-muted">{{this.size_cm}} cm</td>
 

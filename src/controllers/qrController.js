@@ -3,6 +3,7 @@
 const env = require('../config/env');
 const QrCode = require('../models/QrCode');
 const qrService = require('../services/qrService');
+const pixService = require('../services/pixService');
 
 const PER_PAGE = 15;
 
@@ -54,10 +55,17 @@ function buildQuerySuffix(filters) {
 
 /** Monta o objeto usado pelo formulario (create e edit compartilham a view). */
 function buildFormData(body = {}, defaults = {}) {
+  const requestedType = body.type !== undefined ? body.type : defaults.type;
+  const type = requestedType === 'pix' ? 'pix' : 'link';
+
   return {
+    type,
     title: body.title !== undefined ? String(body.title) : (defaults.title || ''),
     description: body.description !== undefined ? String(body.description) : (defaults.description || ''),
     targetUrl: body.targetUrl !== undefined ? String(body.targetUrl) : (defaults.target_url || ''),
+    pixKey: body.pixKey !== undefined ? String(body.pixKey) : (defaults.pix_key || ''),
+    pixName: body.pixName !== undefined ? String(body.pixName) : (defaults.pix_name || ''),
+    pixCity: body.pixCity !== undefined ? String(body.pixCity) : (defaults.pix_city || ''),
     color: qrService.isValidColor(body.color) ? String(body.color) : (defaults.color || env.qr.defaultColor),
     sizeCm: body.sizeCm !== undefined && body.sizeCm !== ''
       ? String(body.sizeCm)
@@ -131,9 +139,15 @@ const qrController = {
 
       const id = await QrCode.create({
         code,
+        type: validation.data.type,
         title: validation.data.title,
         description: validation.data.description,
         targetUrl: validation.data.targetUrl,
+        pixKey: validation.data.pixKey,
+        pixKeyKind: validation.data.pixKeyKind,
+        pixName: validation.data.pixName,
+        pixCity: validation.data.pixCity,
+        pixPayload: validation.data.pixPayload,
         color: validation.data.color,
         sizeCm: validation.data.sizeCm
       });
@@ -159,7 +173,11 @@ const qrController = {
         layout: 'admin',
         pageTitle: qrcode.title,
         qrcode,
-        scanUrl: qrService.buildScanUrl(qrcode.code)
+        isPix: qrcode.type === 'pix',
+        scanUrl: qrService.buildScanUrl(qrcode.code),
+        qrContent: qrService.qrText(qrcode),
+        pixKeyKindLabel: qrcode.pix_key_kind ? pixService.keyKindLabel(qrcode.pix_key_kind) : '',
+        publicUrl: `${env.appUrl}/p/${qrcode.code}`
       });
     } catch (error) {
       return next(error);
@@ -213,16 +231,27 @@ const qrController = {
 
     try {
       await QrCode.update(id, {
+        type: validation.data.type,
         title: validation.data.title,
         description: validation.data.description,
         targetUrl: validation.data.targetUrl,
+        pixKey: validation.data.pixKey,
+        pixKeyKind: validation.data.pixKeyKind,
+        pixName: validation.data.pixName,
+        pixCity: validation.data.pixCity,
+        pixPayload: validation.data.pixPayload,
         color: validation.data.color,
         sizeCm: validation.data.sizeCm
       });
 
       await QrCode.setActive(id, validation.data.active);
 
-      req.flash('success', 'QR Code atualizado. As placas ja impressas continuam funcionando.');
+      req.flash(
+        'success',
+        validation.data.type === 'pix'
+          ? 'QR Code Pix atualizado. Reimprima a placa para valer o novo codigo.'
+          : 'QR Code atualizado. As placas ja impressas continuam funcionando.'
+      );
       return res.redirect(`/admin/qrcodes/${id}`);
     } catch (error) {
       return next(error);
@@ -280,6 +309,27 @@ const qrController = {
     }
   },
 
+  /**
+   * GET /admin/qrcodes/pix-preview.json?key=...&name=...&city=...
+   * Monta o BR Code em tempo real para a previa do formulario. Nada e salvo:
+   * serve apenas para o usuario conferir o codigo antes de imprimir.
+   */
+  pixPreview(req, res) {
+    const result = pixService.validatePix({
+      key: req.query.key,
+      name: req.query.name,
+      city: req.query.city
+    });
+
+    res.set('Cache-Control', 'no-store');
+    return res.json({
+      valid: result.valid,
+      payload: result.valid ? result.data.payload : '',
+      keyLabel: result.valid ? result.data.keyLabel : '',
+      errors: result.errors
+    });
+  },
+
   /** GET /admin/qrcodes/:id/qrcode.png — imagem embutida nas telas */
   async inlinePng(req, res, next) {
     try {
@@ -288,7 +338,7 @@ const qrController = {
 
       const widthPx = Math.min(Number(req.query.w) || 520, 2000);
       const buffer = await qrService.renderPng({
-        text: qrService.buildScanUrl(qrcode.code),
+        text: qrService.qrText(qrcode),
         color: qrcode.color,
         sizeCm: qrcode.size_cm,
         widthPx
@@ -309,7 +359,7 @@ const qrController = {
       if (!qrcode) return next(Object.assign(new Error('QR Code nao encontrado.'), { status: 404 }));
 
       const buffer = await qrService.renderPng({
-        text: qrService.buildScanUrl(qrcode.code),
+        text: qrService.qrText(qrcode),
         color: qrcode.color,
         sizeCm: qrcode.size_cm
       });
@@ -334,7 +384,9 @@ const qrController = {
         layout: false,
         pageTitle: `Imprimir: ${qrcode.title}`,
         qrcode,
-        scanUrl: qrService.buildScanUrl(qrcode.code)
+        isPix: qrcode.type === 'pix',
+        scanUrl: qrService.buildScanUrl(qrcode.code),
+        pixPayload: qrcode.pix_payload || ''
       });
     } catch (error) {
       return next(error);

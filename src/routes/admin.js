@@ -45,6 +45,7 @@ router.get('/qrcodes', qrController.index);
 
 // Precisa vir antes de "/qrcodes/:id" para nao ser capturada como id.
 router.get('/qrcodes/preview.png', qrController.previewPng);
+router.get('/qrcodes/pix-preview.json', qrController.pixPreview);
 router.get('/qrcodes/novo', qrController.createForm);
 router.post('/qrcodes', qrController.create);
 

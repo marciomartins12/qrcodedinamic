@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const QRCode = require('qrcode');
 const env = require('../config/env');
 const QrCode = require('../models/QrCode');
+const pixService = require('./pixService');
 
 // Alfabeto sem caracteres ambiguos (0/O, 1/I/L) para facilitar a digitacao manual.
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -31,6 +32,16 @@ const qrService = {
    */
   buildScanUrl(code) {
     return `${env.appUrl}/r/${code}`;
+  },
+
+  /**
+   * Texto que vai DENTRO do QR Code.
+   * Link: a URL curta do sistema (permite trocar o destino depois).
+   * Pix: o BR Code em si, senao o app do banco nao reconhece o pagamento.
+   */
+  qrText(qrcode) {
+    if (qrcode.type === 'pix' && qrcode.pix_payload) return qrcode.pix_payload;
+    return this.buildScanUrl(qrcode.code);
   },
 
   /**
@@ -113,14 +124,17 @@ const qrService = {
 
   /**
    * Valida os dados vindos do formulario.
+   * O comportamento muda conforme o tipo:
+   *   - link: valida a URL de destino (que pode ficar vazia e ser definida depois)
+   *   - pix : valida a chave/recebedor e ja monta o BR Code
    * Retorna { valid, errors, data }.
    */
   validatePayload(payload) {
     const errors = [];
+    const type = payload.type === 'pix' ? 'pix' : 'link';
 
     const title = String(payload.title || '').trim();
     const description = String(payload.description || '').trim();
-    const targetUrl = this.normalizeUrl(payload.targetUrl);
     const color = this.isValidColor(payload.color) ? String(payload.color) : env.qr.defaultColor;
     const sizeCm = Number(String(payload.sizeCm || '').replace(',', '.'));
     const active = payload.active === '1' || payload.active === 1 || payload.active === true;
@@ -128,12 +142,6 @@ const qrService = {
     if (title.length < 2) errors.push('Informe um nome com pelo menos 2 caracteres.');
     if (title.length > 150) errors.push('O nome pode ter no maximo 150 caracteres.');
     if (description.length > 255) errors.push('A descricao pode ter no maximo 255 caracteres.');
-
-    // O destino e opcional: voce pode criar e imprimir a placa primeiro e
-    // decidir para onde ela leva depois, editando o QR Code.
-    if (targetUrl && !this.isValidUrl(targetUrl)) {
-      errors.push('Link invalido. Use enderecos http://, https://, mailto: ou tel:.');
-    }
 
     if (!Number.isFinite(sizeCm) || sizeCm < 1 || sizeCm > 30) {
       errors.push('O tamanho deve ficar entre 1 cm e 30 cm.');
@@ -143,18 +151,50 @@ const qrService = {
       errors.push('Cor invalida. Use o formato hexadecimal, por exemplo #1E3A8A.');
     }
 
-    return {
-      valid: errors.length === 0,
-      errors,
-      data: {
-        title,
-        description: description || null,
-        targetUrl: targetUrl || null,
-        color,
-        sizeCm: Number.isFinite(sizeCm) ? sizeCm : env.qr.defaultSizeCm,
-        active
-      }
+    const data = {
+      type,
+      title,
+      description: description || null,
+      color,
+      sizeCm: Number.isFinite(sizeCm) ? sizeCm : env.qr.defaultSizeCm,
+      active,
+      targetUrl: null,
+      pixKey: null,
+      pixKeyKind: null,
+      pixName: null,
+      pixCity: null,
+      pixPayload: null
     };
+
+    if (type === 'pix') {
+      const pix = pixService.validatePix({
+        key: payload.pixKey,
+        name: payload.pixName,
+        city: payload.pixCity
+      });
+
+      if (!pix.valid) {
+        errors.push(...pix.errors);
+      } else {
+        data.pixKey = pix.data.key;
+        data.pixKeyKind = pix.data.keyKind;
+        data.pixName = pix.data.name;
+        data.pixCity = pix.data.city;
+        data.pixPayload = pix.data.payload;
+      }
+    } else {
+      // O destino e opcional: voce pode criar e imprimir a placa primeiro e
+      // decidir para onde ela leva depois, editando o QR Code.
+      const targetUrl = this.normalizeUrl(payload.targetUrl);
+
+      if (targetUrl && !this.isValidUrl(targetUrl)) {
+        errors.push('Link invalido. Use enderecos http://, https://, mailto: ou tel:.');
+      }
+
+      data.targetUrl = targetUrl || null;
+    }
+
+    return { valid: errors.length === 0, errors, data };
   }
 };
 

@@ -82,7 +82,7 @@
   });
 
   // -------------------------------------------------------------------------
-  // Formulario do QR Code: cor e previa em tempo real
+  // Formulario do QR Code: tipo, cor e previa em tempo real
   // -------------------------------------------------------------------------
   const form = document.querySelector('[data-qr-form]');
   if (!form) return;
@@ -94,9 +94,26 @@
   const targetInput = form.querySelector('[id="targetUrl"]');
   const sizeInput = form.querySelector('[data-qr-size]');
 
+  const typeInputs = form.querySelectorAll('input[name="type"]');
+  const typeFields = form.querySelectorAll('[data-type-field]');
+  const noteLink = form.querySelector('[data-preview-note-link]');
+  const notePix = form.querySelector('[data-preview-note-pix]');
+  const pixKeyInput = form.querySelector('[id="pixKey"]');
+  const pixNameInput = form.querySelector('[id="pixName"]');
+  const pixCityInput = form.querySelector('[id="pixCity"]');
+  const pixPayloadPreview = form.querySelector('[data-pix-payload-preview]');
+  const pixError = form.querySelector('[data-pix-error]');
+
   const previewUrl = form.getAttribute('data-preview-url') || '/admin/qrcodes/preview.png';
+  const pixPreviewUrl = form.getAttribute('data-pix-preview-url') || '/admin/qrcodes/pix-preview.json';
   const scanBase = form.getAttribute('data-scan-base') || '';
   const isValidHex = (value) => /^#[0-9a-fA-F]{6}$/.test(value);
+
+  /** Tipo escolhido no formulario: "link" ou "pix". */
+  function currentType() {
+    const checked = form.querySelector('input[name="type"]:checked');
+    return checked ? checked.value : 'link';
+  }
 
   /**
    * Luminancia relativa: avisa o usuario quando a cor ficaria clara demais
@@ -115,15 +132,19 @@
     return luminance >= 0.5;
   }
 
-  let previewTimer = null;
+  let debounceTimer = null;
 
-  function refreshPreview() {
+  function debounce(callback, delay) {
+    window.clearTimeout(debounceTimer);
+    debounceTimer = window.setTimeout(callback, delay);
+  }
+
+  /** Recarrega a imagem da previa com o texto que vai dentro do QR Code. */
+  function setPreviewText(text) {
     if (!previewImage) return;
 
     const color = isValidHex(colorText.value) ? colorText.value : '#000000';
     const size = Number(sizeInput.value) || 5;
-    const target = (targetInput.value || '').trim();
-    const text = target ? target : (scanBase + 'CODIGO');
 
     previewImage.src = previewUrl
       + '?t=' + encodeURIComponent(text)
@@ -133,32 +154,115 @@
     if (warning) warning.hidden = !isTooLight(color);
   }
 
-  function schedulePreview() {
-    window.clearTimeout(previewTimer);
-    previewTimer = window.setTimeout(refreshPreview, 220);
+  /** Tipo "link": a previa mostra o link de destino ou a URL curta do sistema. */
+  function refreshLinkPreview() {
+    const target = (targetInput.value || '').trim();
+    setPreviewText(target || (scanBase + 'CODIGO'));
+  }
+
+  /**
+   * Tipo "pix": o BR Code precisa ser montado no servidor (CRC16 e validacao
+   * das chaves), entao pedimos o codigo pronto e usamos como texto do QR.
+   */
+  async function refreshPixPreview() {
+    const params = new URLSearchParams({
+      key: pixKeyInput ? pixKeyInput.value : '',
+      name: pixNameInput ? pixNameInput.value : '',
+      city: pixCityInput ? pixCityInput.value : ''
+    });
+
+    try {
+      const response = await fetch(pixPreviewUrl + '?' + params.toString(), {
+        credentials: 'same-origin'
+      });
+      const result = await response.json();
+
+      if (result.valid) {
+        if (pixPayloadPreview) pixPayloadPreview.value = result.payload;
+        if (pixError) {
+          pixError.hidden = true;
+          pixError.textContent = '';
+        }
+        setPreviewText(result.payload);
+      } else {
+        if (pixPayloadPreview) pixPayloadPreview.value = '';
+        if (pixError) {
+          pixError.hidden = false;
+          pixError.textContent = (result.errors && result.errors[0]) || 'Preencha os dados do Pix.';
+        }
+        setPreviewText('PIX');
+      }
+    } catch (error) {
+      console.warn('Nao foi possivel gerar a previa do Pix.', error);
+    }
+  }
+
+  function refreshPreview() {
+    if (currentType() === 'pix') {
+      refreshPixPreview();
+    } else {
+      refreshLinkPreview();
+    }
+  }
+
+  /** Mostra somente os campos do tipo escolhido. */
+  function applyType() {
+    const type = currentType();
+
+    typeFields.forEach(function (field) {
+      field.hidden = field.getAttribute('data-type-field') !== type;
+    });
+
+    if (noteLink) noteLink.hidden = type === 'pix';
+    if (notePix) notePix.hidden = type !== 'pix';
+
+    refreshPreview();
   }
 
   if (colorPicker && colorText) {
     colorPicker.addEventListener('input', function () {
       colorText.value = colorPicker.value.toUpperCase();
-      schedulePreview();
+      debounce(refreshPreview, 220);
     });
 
     colorText.addEventListener('input', function () {
       const value = colorText.value.trim();
       if (isValidHex(value)) {
         colorPicker.value = value;
-        schedulePreview();
+        debounce(refreshPreview, 220);
       } else if (warning) {
         warning.hidden = true;
       }
     });
   }
 
-  ['input', 'change'].forEach(function (eventName) {
-    if (targetInput) targetInput.addEventListener(eventName, schedulePreview);
-    if (sizeInput) sizeInput.addEventListener(eventName, schedulePreview);
+  if (sizeInput) {
+    ['input', 'change'].forEach(function (eventName) {
+      sizeInput.addEventListener(eventName, function () {
+        debounce(refreshPreview, 220);
+      });
+    });
+  }
+
+  if (targetInput) {
+    ['input', 'change'].forEach(function (eventName) {
+      targetInput.addEventListener(eventName, function () {
+        debounce(refreshLinkPreview, 220);
+      });
+    });
+  }
+
+  typeInputs.forEach(function (input) {
+    input.addEventListener('change', applyType);
   });
 
-  refreshPreview();
+  [pixKeyInput, pixNameInput, pixCityInput].forEach(function (input) {
+    if (!input) return;
+    input.addEventListener('input', function () {
+      debounce(refreshPixPreview, 320);
+    });
+  });
+
+  applyType();
 })();
+

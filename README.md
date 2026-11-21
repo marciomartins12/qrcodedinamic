@@ -4,6 +4,11 @@ Sistema de **QR Codes dinamicos** com painel administrativo. Voce gera o QR Code
 
 Cada QR Code carrega uma URL curta do proprio sistema (`https://seudominio.com.br/r/CODIGO`). Quando alguem escaneia, o sistema conta a leitura e redireciona para o link configurado naquele momento.
 
+Dois tipos de QR Code:
+
+- **Link / Redirecionamento** — dinamico: o destino pode ser trocado a qualquer momento, sem trocar a placa.
+- **Pix (copia e cola)** — o QR carrega o proprio **BR Code** do Pix, igual ao que o banco gera. Quem paga abre o aplicativo do banco, aponta a camera e o pagamento e montado direto (o valor e digitado pelo cliente). Como o codigo Pix fica gravado na imagem, ele **nao e dinamico**: para trocar a chave e preciso reimprimir a placa.
+
 - Node.js + Express
 - MySQL (mysql2)
 - Handlebars (server-side)
@@ -106,7 +111,7 @@ Ajustes obrigatorios no `.env`:
 Depois:
 
 ```bash
-npm run db:setup      # cria as tabelas no banco de producao e o admin
+npm run db:setup      # cria as tabelas e o admin (tambem aplica atualizacoes de estrutura)
 mkdir -p logs
 ```
 
@@ -171,6 +176,7 @@ sudo certbot --nginx -d seudominio.com.br
 cd /var/www/plaquinhas
 git pull
 npm install --omit=dev
+npm run db:setup          # aplica novas colunas/tabelas sem apagar dados existentes
 pm2 reload plaquinhas
 ```
 
@@ -196,6 +202,33 @@ Links aceitos no destino: `http://`, `https://`, `mailto:` e `tel:`.
 Se voce digitar apenas `site.com.br`, o sistema completa com `https://` automaticamente.
 Para WhatsApp use `https://wa.me/55DDDNUMERO`.
 
+### QR Code de Pix (copia e cola)
+
+Ao criar o QR Code, escolha o tipo **Pix (copia e cola)** e informe:
+
+| Campo | O que e |
+|---|---|
+| **Chave Pix** | A chave de quem vai receber: CPF, CNPJ, e-mail, telefone (`+55DDDNUMERO`) ou chave aleatoria (UUID). |
+| **Nome do recebedor** | Como aparece no aplicativo do banco (ate 25 caracteres, sem acentos). |
+| **Cidade do recebedor** | Aparece no comprovante (ate 15 caracteres, sem acentos). |
+
+O sistema monta o **BR Code** (padrao EMV do Banco Central, com CRC16 correto) e mostra o
+**Pix copia e cola** na previa do formulario, para voce conferir antes de imprimir.
+
+- O QR Code gerado e o **mesmo tipo de codigo que o banco fornece**: quem paga abre o app do
+  banco, aponta a camera e o pagamento ja vem montado, com o valor digitado pelo cliente.
+- **Nao e dinamico.** A chave faz parte da imagem impressa. Para mudar a chave, edite o QR Code
+  e **reimprima** a placa.
+- Se a chave estiver invalida (ex: CPF com digito errado), o sistema recusa o cadastro — isso
+  evita imprimir uma placa que enviaria o dinheiro para o lugar errado.
+- Cada QR Code Pix tambem ganha uma **pagina publica** em `APP_URL/p/CODIGO` com o codigo
+  copia-e-cola, para quem nao conseguir apontar a camera (basta compartilhar o link ou imprimir
+  o endereco junto da placa).
+
+> Um QR Code Pix nao pode ser um link: o aplicativo do banco precisa encontrar o payload do Pix
+> dentro do QR. Por isso, ao contrario dos QR de link, ele nao passa pelo sistema no momento do
+> pagamento.
+
 ---
 
 ## Rotas principais
@@ -203,14 +236,17 @@ Para WhatsApp use `https://wa.me/55DDDNUMERO`.
 | Metodo | Rota | Descricao |
 |---|---|---|
 | GET | `/` | Pagina publica neutra |
-| GET | `/r/:code` | Leitura do QR: conta o clique e redireciona |
+| GET | `/r/:code` | Leitura do QR: conta o clique e redireciona (Pix: abre a pagina do codigo) |
+| GET | `/p/:code` | Pagina publica do QR Code Pix (copia e cola) |
+| GET | `/p/:code/qrcode.png` | Imagem publica do QR Code Pix |
 | GET | `/health` | Health check (uptime + status) |
 | GET/POST | `/admin/login` | Login do painel (limite de 10 tentativas / 15 min) |
 | POST | `/admin/logout` | Encerra a sessao |
 | GET | `/admin` | Visao geral com estatisticas |
 | GET | `/admin/qrcodes` | Lista com busca, filtro e paginacao |
-| GET/POST | `/admin/qrcodes/novo` | Criar QR Code (link de destino opcional, com previa em tempo real) |
-| GET/POST | `/admin/qrcodes/:id/editar` | Editar destino, cor, tamanho e status |
+| GET/POST | `/admin/qrcodes/novo` | Criar QR Code (tipo Link ou Pix, com previa em tempo real) |
+| GET | `/admin/qrcodes/pix-preview.json` | Monta o BR Code em tempo real para a previa do formulario |
+| GET/POST | `/admin/qrcodes/:id/editar` | Editar tipo, destino/chave, cor, tamanho e status |
 | POST | `/admin/qrcodes/:id/status` | Pausar / reativar |
 | POST | `/admin/qrcodes/:id/excluir` | Excluir |
 | GET | `/admin/qrcodes/:id/download.png` | PNG em 300 dpi para a grafica |
@@ -244,3 +280,4 @@ Recomendado agendar via `cron` diario e manter os arquivos fora da VPS.
 - Ao imprimir, use escala **100%** (tamanho real).
 - Teste sempre o QR com a camera de dois celulares diferentes antes de mandar produzir a placa.
 - Cores muito claras reduzem a leitura — o painel avisa quando a cor escolhida pode dar problema.
+- QR Code de **Pix** nao e dinamico: teste o pagamento com um valor pequeno antes de imprimir a placa em serie.

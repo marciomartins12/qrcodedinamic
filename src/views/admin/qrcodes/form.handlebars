@@ -10,6 +10,7 @@
 <form method="post" action="{{#if qrcode}}/admin/qrcodes/{{qrcode.id}}{{else}}/admin/qrcodes{{/if}}"
       class="layout-split" data-qr-form
       data-preview-url="/admin/qrcodes/preview.png"
+      data-pix-preview-url="/admin/qrcodes/pix-preview.json"
       data-scan-base="{{appUrl}}/r/">
   <div class="split__main">
     <section class="panel">
@@ -19,20 +20,81 @@
 
       <div class="panel__body">
         <div class="field">
+          <span class="field__label">Tipo de QR Code</span>
+          <div class="type-switch" data-type-switch>
+            <label class="type-switch__option">
+              <input type="radio" name="type" value="link" {{#ifEq form.type "link"}}checked{{/ifEq}}>
+              <span class="type-switch__box">
+                <strong>Link / Redirecionamento</strong>
+                <small>O QR aponta para o sistema e voce troca o destino quando quiser, sem trocar a placa.</small>
+              </span>
+            </label>
+            <label class="type-switch__option">
+              <input type="radio" name="type" value="pix" {{#ifEq form.type "pix"}}checked{{/ifEq}}>
+              <span class="type-switch__box">
+                <strong>Pix (copia e cola)</strong>
+                <small>O QR carrega o proprio codigo Pix do banco. O valor e digitado por quem paga.</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
           <label class="field__label" for="title">Nome da plaquinha *</label>
           <input class="field__input" type="text" id="title" name="title" value="{{form.title}}"
                  maxlength="150" required placeholder="Ex: Mesa 04 - Restaurante do Ze">
           <span class="field__help">Serve para voce identificar de qual placa impressa se trata.</span>
         </div>
 
-        <div class="field">
-          <label class="field__label" for="targetUrl">Link de destino</label>
-          <input class="field__input" type="text" id="targetUrl" name="targetUrl" value="{{form.targetUrl}}"
-                 placeholder="Deixe em branco para configurar depois — ex: https://www.seudominio.com.br/cardapio">
-          <span class="field__help">
-            <strong>Opcional.</strong> Pode ficar em branco na criacao: imprima a placa agora e defina o destino
-            depois, sem trocar a placa. Aceita site, WhatsApp (https://wa.me/55DDDNUMERO), Instagram, Google Maps...
-          </span>
+        <div data-type-field="link"{{#ifEq form.type "pix"}} hidden{{/ifEq}}>
+          <div class="field">
+            <label class="field__label" for="targetUrl">Link de destino</label>
+            <input class="field__input" type="text" id="targetUrl" name="targetUrl" value="{{form.targetUrl}}"
+                   placeholder="Deixe em branco para configurar depois — ex: https://www.seudominio.com.br/cardapio">
+            <span class="field__help">
+              <strong>Opcional.</strong> Pode ficar em branco na criacao: imprima a placa agora e defina o destino
+              depois, sem trocar a placa. Aceita site, WhatsApp (https://wa.me/55DDDNUMERO), Instagram, Google Maps...
+            </span>
+          </div>
+        </div>
+
+        <div data-type-field="pix"{{#ifEq form.type "link"}} hidden{{/ifEq}}>
+          <div class="field">
+            <label class="field__label" for="pixKey">Chave Pix *</label>
+            <input class="field__input" type="text" id="pixKey" name="pixKey" value="{{form.pixKey}}"
+                   maxlength="77" placeholder="CPF, CNPJ, e-mail, telefone (+55...) ou chave aleatoria">
+            <span class="field__help">
+              A chave de quem vai <strong>receber</strong>. Confira com atencao: o codigo e impresso na placa e
+              nao pode ser alterado depois — um erro aqui envia o dinheiro para a conta errada.
+            </span>
+          </div>
+
+          <div class="grid grid--2">
+            <div class="field">
+              <label class="field__label" for="pixName">Nome do recebedor *</label>
+              <input class="field__input" type="text" id="pixName" name="pixName" value="{{form.pixName}}"
+                     maxlength="25" placeholder="Ex: JOSE DA SILVA">
+              <span class="field__help">Como aparece no aplicativo do banco (maximo de 25 caracteres).</span>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="pixCity">Cidade do recebedor *</label>
+              <input class="field__input" type="text" id="pixCity" name="pixCity" value="{{form.pixCity}}"
+                     maxlength="15" placeholder="Ex: SAO PAULO">
+              <span class="field__help">Aparece no comprovante (maximo de 15 caracteres).</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="pixPayloadPreview">Pix copia e cola gerado</label>
+            <textarea class="pix-copy__value" id="pixPayloadPreview" rows="4" readonly
+                      data-pix-payload-preview></textarea>
+            <span class="field__help">
+              Este e o codigo que o aplicativo do banco vai ler. E o mesmo texto que a placa impressa vai carregar.
+              Preencha a chave, o nome e a cidade para gera-lo.
+            </span>
+            <span class="field__warning" data-pix-error hidden></span>
+          </div>
         </div>
 
         <div class="field">
@@ -67,7 +129,7 @@
           <label class="switch">
             <input type="checkbox" name="active" value="1" {{#if form.active}}checked{{/if}}>
             <span class="switch__track"></span>
-            <span class="switch__label">QR Code ativo (redirecionando)</span>
+            <span class="switch__label">QR Code ativo</span>
           </label>
           <span class="field__help">Desmarcado, quem escanear ve um aviso de indisponivel em vez do destino.</span>
         </div>
@@ -94,17 +156,26 @@
                src="/admin/qrcodes/preview.png?c={{form.color}}&s={{form.sizeCm}}">
         </div>
 
-        <p class="qr-preview__note">
+        <p class="qr-preview__note" data-preview-note-link{{#ifEq form.type "pix"}} hidden{{/ifEq}}>
           O QR Code aponta sempre para <span class="mono">{{appUrl}}/r/<strong>CODIGO</strong></span>.
           So o destino muda quando voce edita o link.
+        </p>
+        <p class="qr-preview__note" data-preview-note-pix{{#ifEq form.type "link"}} hidden{{/ifEq}}>
+          O QR Code carrega o proprio <strong>codigo Pix</strong>. Ele nao e dinamico: para mudar a chave
+          sera preciso reimprimir a placa.
         </p>
 
         {{#if qrcode}}
           <div class="qr-preview__code">
             <span class="field__label">Codigo desta placa</span>
             <span class="mono mono--lg">{{qrcode.code}}</span>
-            <button type="button" class="btn btn--ghost btn--sm btn--block"
-                    data-copy="{{appUrl}}/r/{{qrcode.code}}">Copiar link de leitura</button>
+            {{#ifEq qrcode.type "pix"}}
+              <button type="button" class="btn btn--ghost btn--sm btn--block"
+                      data-copy="{{qrcode.pix_payload}}">Copiar codigo Pix</button>
+            {{else}}
+              <button type="button" class="btn btn--ghost btn--sm btn--block"
+                      data-copy="{{appUrl}}/r/{{qrcode.code}}">Copiar link de leitura</button>
+            {{/ifEq}}
           </div>
         {{/if}}
       </div>

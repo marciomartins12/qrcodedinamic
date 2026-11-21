@@ -45,7 +45,10 @@
           <tbody>
             {{#each latest}}
               <tr>
-                <td><a href="/admin/qrcodes/{{this.id}}">{{this.title}}</a></td>
+                <td>
+                  <a href="/admin/qrcodes/{{this.id}}">{{this.title}}</a>
+                  {{#ifEq this.type "pix"}}<span class="badge badge--pix">Pix</span>{{/ifEq}}
+                </td>
                 <td><span class="mono">{{this.code}}</span></td>
                 <td>
                   {{#if this.active}}
@@ -88,7 +91,11 @@
               <tr>
                 <td><a href="/admin/qrcodes/{{this.id}}">{{this.title}}</a></td>
                 <td class="is-muted">
-                  {{#if this.target_url}}{{shortUrl this.target_url 34}}{{else}}<span class="badge badge--warn">Sem destino</span>{{/if}}
+                  {{#ifEq this.type "pix"}}
+                    Chave Pix
+                  {{else}}
+                    {{#if this.target_url}}{{shortUrl this.target_url 34}}{{else}}<span class="badge badge--warn">Sem destino</span>{{/if}}
+                  {{/ifEq}}
                 </td>
                 <td class="is-right">{{formatNumber this.clicks}}</td>
               </tr>
