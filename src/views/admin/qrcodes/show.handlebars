@@ -1,3 +1,11 @@
+{{#unless qrcode.target_url}}
+  <div class="alert alert--warn">
+    <strong>Destino ainda nao configurado.</strong>
+    Esta plaquinha ja pode ser impressa, mas quem escanear vera um aviso ate voce definir o link.
+    <a class="link" href="/admin/qrcodes/{{qrcode.id}}/editar">Configurar destino agora</a>
+  </div>
+{{/unless}}
+
 <div class="detail-head">
   <div>
     <h2>{{qrcode.title}}</h2>
@@ -23,7 +31,11 @@
           <div>
             <dt>Link de destino</dt>
             <dd>
-              <a class="link" href="{{qrcode.target_url}}" target="_blank" rel="noopener noreferrer">{{qrcode.target_url}}</a>
+              {{#if qrcode.target_url}}
+                <a class="link" href="{{qrcode.target_url}}" target="_blank" rel="noopener noreferrer">{{qrcode.target_url}}</a>
+              {{else}}
+                <span class="badge badge--warn">Nao configurado</span>
+              {{/if}}
             </dd>
           </div>
           <div>

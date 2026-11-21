@@ -43,6 +43,11 @@ async function run() {
     console.log('[1/3] criando banco e tabelas...');
     await connection.query(schema);
     await connection.query(`USE \`${dbName}\``);
+
+    // Compatibilidade com bancos criados antes: o link de destino passou a ser
+    // opcional (cria-se a placa primeiro e configura o destino depois).
+    await connection.query('ALTER TABLE `qrcodes` MODIFY `target_url` VARCHAR(2048) NULL DEFAULT NULL');
+
     console.log('      banco e tabelas prontos.');
 
     console.log('[2/3] verificando usuario administrador...');

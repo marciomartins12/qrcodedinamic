@@ -55,7 +55,9 @@
                 </button>
               </td>
 
-              <td class="is-muted">{{shortUrl this.target_url 38}}</td>
+              <td class="is-muted">
+                {{#if this.target_url}}{{shortUrl this.target_url 38}}{{else}}<span class="badge badge--warn">Sem destino</span>{{/if}}
+              </td>
               <td class="is-muted">{{this.size_cm}} cm</td>
 
               <td>

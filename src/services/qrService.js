@@ -129,9 +129,9 @@ const qrService = {
     if (title.length > 150) errors.push('O nome pode ter no maximo 150 caracteres.');
     if (description.length > 255) errors.push('A descricao pode ter no maximo 255 caracteres.');
 
-    if (!targetUrl) {
-      errors.push('Informe o link de destino.');
-    } else if (!this.isValidUrl(targetUrl)) {
+    // O destino e opcional: voce pode criar e imprimir a placa primeiro e
+    // decidir para onde ela leva depois, editando o QR Code.
+    if (targetUrl && !this.isValidUrl(targetUrl)) {
       errors.push('Link invalido. Use enderecos http://, https://, mailto: ou tel:.');
     }
 
@@ -149,7 +149,7 @@ const qrService = {
       data: {
         title,
         description: description || null,
-        targetUrl,
+        targetUrl: targetUrl || null,
         color,
         sizeCm: Number.isFinite(sizeCm) ? sizeCm : env.qr.defaultSizeCm,
         active

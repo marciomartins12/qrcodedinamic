@@ -39,6 +39,17 @@ const redirectController = {
         });
       }
 
+      // Ainda sem link de destino: a placa foi criada/impressa mas o destino
+      // sera configurado depois no painel.
+      if (!qrcode.target_url) {
+        return res.status(503).render('public/unavailable', {
+          layout: 'main',
+          pageTitle: 'Destino nao configurado',
+          title: 'Destino ainda nao configurado',
+          message: 'Esta plaquinha ainda nao tem um link de destino. Configure no painel para comecar a redirecionar.'
+        });
+      }
+
       // Contabiliza a leitura sem impedir o redirecionamento.
       try {
         await QrCode.registerClick(qrcode.id);

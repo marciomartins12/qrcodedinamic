@@ -87,7 +87,9 @@
             {{#each top}}
               <tr>
                 <td><a href="/admin/qrcodes/{{this.id}}">{{this.title}}</a></td>
-                <td class="is-muted">{{shortUrl this.target_url 34}}</td>
+                <td class="is-muted">
+                  {{#if this.target_url}}{{shortUrl this.target_url 34}}{{else}}<span class="badge badge--warn">Sem destino</span>{{/if}}
+                </td>
                 <td class="is-right">{{formatNumber this.clicks}}</td>
               </tr>
             {{/each}}

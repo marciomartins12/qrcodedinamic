@@ -178,12 +178,19 @@ pm2 reload plaquinhas
 
 ## Como o sistema funciona
 
-1. Voce cria um QR Code no painel escolhendo o **nome** da plaquinha, o **link de destino**, a **cor** e o **tamanho em cm**.
+1. Voce cria um QR Code no painel escolhendo o **nome** da plaquinha, a **cor** e o **tamanho em cm**. O **link de destino e opcional** — pode ficar em branco.
 2. O sistema gera um codigo curto (ex: `AB2C3D`) e a URL publica `APP_URL/r/AB2C3D`.
 3. Voce baixa o PNG em 300 dpi (ou abre a folha de impressao) e manda fazer a placa.
 4. Quem escaneia cai em `/r/AB2C3D`: o sistema conta a leitura e redireciona para o destino atual.
-5. Para trocar o destino, basta editar o QR Code no painel. **O codigo na URL nao muda**, entao as placas ja impressas continuam funcionando.
+5. Para definir ou trocar o destino, basta editar o QR Code no painel. **O codigo na URL nao muda**, entao as placas ja impressas continuam funcionando.
 6. Se quiser desativar temporariamente, use **Pausar**: quem escanear ve uma pagina de aviso e nenhum clique e contado.
+
+### Criar e imprimir antes de escolher o destino
+
+Se voce ainda nao sabe para onde a placa vai levar, deixe o **Link de destino em branco** ao criar.
+A placa ja pode ser baixada e impressa normalmente. Enquanto o destino nao for definido, quem
+escanear ve a mensagem *"Destino ainda nao configurado"*. Depois, no painel, abra o QR Code,
+clique em **Editar** e informe o link — a partir dai ele passa a redirecionar, sem trocar a placa.
 
 Links aceitos no destino: `http://`, `https://`, `mailto:` e `tel:`.
 Se voce digitar apenas `site.com.br`, o sistema completa com `https://` automaticamente.
@@ -202,7 +209,7 @@ Para WhatsApp use `https://wa.me/55DDDNUMERO`.
 | POST | `/admin/logout` | Encerra a sessao |
 | GET | `/admin` | Visao geral com estatisticas |
 | GET | `/admin/qrcodes` | Lista com busca, filtro e paginacao |
-| GET/POST | `/admin/qrcodes/novo` | Criar QR Code (com previa em tempo real) |
+| GET/POST | `/admin/qrcodes/novo` | Criar QR Code (link de destino opcional, com previa em tempo real) |
 | GET/POST | `/admin/qrcodes/:id/editar` | Editar destino, cor, tamanho e status |
 | POST | `/admin/qrcodes/:id/status` | Pausar / reativar |
 | POST | `/admin/qrcodes/:id/excluir` | Excluir |

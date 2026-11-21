@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `qrcodes` (
   `code`          VARCHAR(16) NOT NULL,          -- codigo curto que vai na URL publica
   `title`         VARCHAR(150) NOT NULL,         -- identificacao da plaquinha
   `description`   VARCHAR(255) NULL DEFAULT NULL,
-  `target_url`    VARCHAR(2048) NOT NULL,        -- para onde o QR redireciona
+  `target_url`    VARCHAR(2048) NULL DEFAULT NULL, -- destino do redirecionamento (pode ser definido depois)
   `color`         CHAR(7) NOT NULL DEFAULT '#000000',
   `size_cm`       DECIMAL(5,2) NOT NULL DEFAULT 5.00,
   `active`        TINYINT(1) NOT NULL DEFAULT 1,

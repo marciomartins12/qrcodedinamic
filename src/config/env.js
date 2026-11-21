@@ -33,9 +33,21 @@ function normalizeBaseUrl(url) {
   return String(url).trim().replace(/\/+$/, '');
 }
 
+function toBoolean(key, fallback) {
+  const value = optional(key, null);
+  if (value === null) return fallback;
+  return value === 'true' || value === '1';
+}
+
+const isProduction = env === 'production';
+
 module.exports = {
   env,
-  isProduction: env === 'production',
+  isProduction,
+  // Cookie `secure` so trafega em HTTPS. Em producao sem HTTPS (ex: acesso por
+  // IP ou hostname do VPS) defina COOKIE_SECURE=false no .env, senao o login
+  // fica em loop porque o navegador nunca envia o cookie de sessao.
+  cookieSecure: toBoolean('COOKIE_SECURE', isProduction),
   port: toNumber('PORT', 3000),
   appName: optional('APP_NAME', 'Plaquinhas QR'),
   appUrl: normalizeBaseUrl(optional('APP_URL', `http://localhost:${toNumber('PORT', 3000)}`)),

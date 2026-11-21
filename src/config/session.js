@@ -47,7 +47,7 @@ function buildSessionMiddleware() {
       httpOnly: true,
       // sameSite lax ja bloqueia CSRF em requisicoes POST de outros sites.
       sameSite: 'lax',
-      secure: env.isProduction, // exige HTTPS em producao
+      secure: env.cookieSecure, // true exige HTTPS (ver COOKIE_SECURE no .env)
       maxAge: env.session.maxAgeMs
     }
   });

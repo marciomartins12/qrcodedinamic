@@ -249,6 +249,8 @@ code {
 }
 .alert--error { background: #2a1116; border-color: #57222c; color: #fbc3c3; }
 .alert--error strong { display: block; margin-bottom: 4px; }
+.alert--warn { background: #2a1f0b; border-color: #5c441a; color: #fbdfa8; }
+.alert--warn strong { color: #fcd977; }
 
 /* --------------------------------------------------------------------------
    Layout admin
@@ -414,6 +416,7 @@ code {
 .badge--on { background: rgba(34, 197, 94, .14); color: #6ee7a0; border-color: rgba(34, 197, 94, .3); }
 .badge--off { background: rgba(148, 163, 184, .13); color: #b3c0d4; border-color: rgba(148, 163, 184, .25); }
 .badge--neutral { background: rgba(99, 102, 241, .14); color: #b6baff; border-color: rgba(99, 102, 241, .3); }
+.badge--warn { background: rgba(245, 158, 11, .14); color: #fbca7a; border-color: rgba(245, 158, 11, .32); }
 
 .chip {
   display: inline-flex;
