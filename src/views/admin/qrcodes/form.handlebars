@@ -1,0 +1,112 @@
+{{#if errors.length}}
+  <div class="alert alert--error">
+    <strong>Nao foi possivel salvar:</strong>
+    <ul>
+      {{#each errors}}<li>{{this}}</li>{{/each}}
+    </ul>
+  </div>
+{{/if}}
+
+<form method="post" class="layout-split" data-qr-form
+      data-preview-url="/admin/qrcodes/preview.png"
+      data-scan-base="{{appUrl}}/r/">
+  <div class="split__main">
+    <section class="panel">
+      <header class="panel__head">
+        <h2>Dados do QR Code</h2>
+      </header>
+
+      <div class="panel__body">
+        <div class="field">
+          <label class="field__label" for="title">Nome da plaquinha *</label>
+          <input class="field__input" type="text" id="title" name="title" value="{{form.title}}"
+                 maxlength="150" required placeholder="Ex: Mesa 04 - Restaurante do Ze">
+          <span class="field__help">Serve para voce identificar de qual placa impressa se trata.</span>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="targetUrl">Link de destino *</label>
+          <input class="field__input" type="text" id="targetUrl" name="targetUrl" value="{{form.targetUrl}}" required
+                 placeholder="https://www.seudominio.com.br/cardapio">
+          <span class="field__help">
+            Pode ser qualquer link: site, WhatsApp (https://wa.me/55DDDNUMERO), Instagram, Google Maps, PDF...
+            Voce pode mudar este link depois, sem trocar a placa.
+          </span>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="description">Descricao interna</label>
+          <input class="field__input" type="text" id="description" name="description" value="{{form.description}}"
+                 maxlength="255" placeholder="Opcional — visivel apenas no painel">
+        </div>
+
+        <div class="grid grid--2">
+          <div class="field">
+            <label class="field__label" for="colorPicker">Cor do QR Code</label>
+            <div class="color-row">
+              <input type="color" id="colorPicker" value="{{form.color}}" data-color-picker>
+              <input class="field__input mono" type="text" id="color" name="color" value="{{form.color}}"
+                     maxlength="7" pattern="^#[0-9a-fA-F]{6}$" data-color-text>
+            </div>
+            <span class="field__help">Use cores escuras. Tons claros dificultam a leitura do QR.</span>
+            <span class="field__warning" data-color-warning hidden>
+              Esta cor pode ficar clara demais impressa. Prefira tons escuros.
+            </span>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="sizeCm">Tamanho impresso (cm) *</label>
+            <input class="field__input" type="number" id="sizeCm" name="sizeCm" value="{{form.sizeCm}}"
+                   min="1" max="30" step="0.5" required data-qr-size>
+            <span class="field__help">O PNG sai em 300 dpi no tamanho exato para a grafica.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="switch">
+            <input type="checkbox" name="active" value="1" {{#if form.active}}checked{{/if}}>
+            <span class="switch__track"></span>
+            <span class="switch__label">QR Code ativo (redirecionando)</span>
+          </label>
+          <span class="field__help">Desmarcado, quem escanear ve um aviso de indisponivel em vez do destino.</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">
+        {{#ifEq mode "edit"}}Salvar alteracoes{{else}}Criar QR Code{{/ifEq}}
+      </button>
+      <a class="btn btn--ghost" href="{{#if qrcode}}/admin/qrcodes/{{qrcode.id}}{{else}}/admin/qrcodes{{/if}}">Cancelar</a>
+    </div>
+  </div>
+
+  <aside class="split__side">
+    <section class="panel panel--sticky">
+      <header class="panel__head">
+        <h2>Previa</h2>
+      </header>
+
+      <div class="panel__body">
+        <div class="qr-preview">
+          <img class="qr-preview__img" alt="Previa do QR Code" data-qr-preview
+               src="/admin/qrcodes/preview.png?c={{form.color}}&s={{form.sizeCm}}">
+        </div>
+
+        <p class="qr-preview__note">
+          O QR Code aponta sempre para <span class="mono">{{appUrl}}/r/<strong>CODIGO</strong></span>.
+          So o destino muda quando voce edita o link.
+        </p>
+
+        {{#if qrcode}}
+          <div class="qr-preview__code">
+            <span class="field__label">Codigo desta placa</span>
+            <span class="mono mono--lg">{{qrcode.code}}</span>
+            <button type="button" class="btn btn--ghost btn--sm btn--block"
+                    data-copy="{{appUrl}}/r/{{qrcode.code}}">Copiar link de leitura</button>
+          </div>
+        {{/if}}
+      </div>
+    </section>
+  </aside>
+</form>

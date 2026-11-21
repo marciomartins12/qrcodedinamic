@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Imprimir · {{qrcode.title}}</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="layout-print">
+
+  <div class="print-toolbar">
+    <button type="button" class="btn btn--primary" id="print-button">Imprimir / Salvar em PDF</button>
+    <span class="is-muted">
+      Configure a impressora para <strong>100% de escala</strong> (tamanho real) e margens padrao.
+    </span>
+  </div>
+
+  <div class="print-sheet" style="width: {{qrcode.size_cm}}cm;">
+    <div class="print-sheet__qr">
+      <img src="/admin/qrcodes/{{qrcode.id}}/qrcode.png?w=1200" alt="QR Code {{qrcode.title}}"
+           style="width: {{qrcode.size_cm}}cm; height: {{qrcode.size_cm}}cm;">
+    </div>
+    <p class="print-sheet__label">{{qrcode.title}}</p>
+    <p class="print-sheet__url">{{scanUrl}}</p>
+  </div>
+
+  <script src="/js/print.js" defer></script>
+</body>
+</html>

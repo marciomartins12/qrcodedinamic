@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{{pageTitle}} · {{appName}}</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="layout-admin">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <span class="brand__mark">▦</span>
+      <div>
+        <strong>{{appName}}</strong>
+        <small>Painel administrativo</small>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <a class="nav-item {{#isActive currentPath "/admin"}}is-active{{/isActive}}" href="/admin">
+        <span class="nav-item__icon">◈</span> Visao geral
+      </a>
+      <a class="nav-item {{#isActive currentPath "/admin/qrcodes"}}is-active{{/isActive}}" href="/admin/qrcodes">
+        <span class="nav-item__icon">▦</span> QR Codes
+      </a>
+      <a class="nav-item {{#isActive currentPath "/admin/conta"}}is-active{{/isActive}}" href="/admin/conta">
+        <span class="nav-item__icon">◐</span> Minha conta
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <span class="avatar">{{initials currentUser.name}}</span>
+        <div>
+          <strong>{{currentUser.name}}</strong>
+          <small>{{currentUser.email}}</small>
+        </div>
+      </div>
+      <form method="post" action="/admin/logout">
+        <button type="submit" class="btn btn--ghost btn--block btn--sm">Sair</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <button type="button" class="btn btn--ghost btn--icon topbar__toggle" data-toggle-sidebar aria-label="Abrir menu">☰</button>
+      <div class="topbar__title">
+        <h1>{{pageTitle}}</h1>
+        <p class="topbar__sub">{{appName}} · {{appUrl}}</p>
+      </div>
+      <a class="btn btn--primary btn--sm" href="/admin/qrcodes/novo">+ Novo QR Code</a>
+    </header>
+
+    <div class="page">
+      {{> flash}}
+      {{{body}}}
+    </div>
+  </main>
+
+  <script src="/js/admin.js" defer></script>
+</body>
+</html>

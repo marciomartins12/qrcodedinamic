@@ -1,0 +1,31 @@
+<div class="auth">
+  <div class="auth__card">
+    <div class="auth__brand">
+      <span class="brand__mark brand__mark--lg">▦</span>
+      <h1>{{appName}}</h1>
+      <p>{{appUrl}}</p>
+    </div>
+
+    {{> flash}}
+
+    <form method="post" action="/admin/login" class="form" autocomplete="on">
+      <div class="field">
+        <label class="field__label" for="email">E-mail</label>
+        <input class="field__input" type="email" id="email" name="email" value="{{email}}"
+               placeholder="admin@seudominio.com" required autofocus autocomplete="username">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">Senha</label>
+        <input class="field__input" type="password" id="password" name="password"
+               placeholder="••••••••" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block">Entrar no painel</button>
+    </form>
+
+    <p class="auth__hint">
+      Perdeu o acesso? Rode <code>npm run db:setup</code> na VPS ou crie um novo usuario direto no MySQL.
+    </p>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+{{#if pagination.totalPages}}
+  <div class="pagination">
+    <span class="pagination__info">
+      {{#if (gt pagination.total 0)}}
+        Exibindo <strong>{{pagination.first}}</strong>–<strong>{{pagination.last}}</strong> de <strong>{{pagination.total}}</strong>
+      {{else}}
+        Nenhum registro
+      {{/if}}
+    </span>
+
+    <div class="pagination__links">
+      {{#if pagination.hasPrev}}
+        <a class="pagination__link" href="{{baseUrl}}?page={{pagination.pagePrev}}{{querySuffix}}">Anterior</a>
+      {{/if}}
+
+      {{#each pagination.pages}}
+        <a class="pagination__link {{#if this.active}}is-active{{/if}}" href="{{../baseUrl}}?page={{this.number}}{{../querySuffix}}">{{this.number}}</a>
+      {{/each}}
+
+      {{#if pagination.hasNext}}
+        <a class="pagination__link" href="{{baseUrl}}?page={{pagination.pageNext}}{{querySuffix}}">Proxima</a>
+      {{/if}}
+    </div>
+  </div>
+{{/if}}

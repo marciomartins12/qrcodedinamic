@@ -1,0 +1,15 @@
+<div class="auth">
+  <div class="auth__card auth__card--center">
+    <span class="status-mark status-mark--error">!</span>
+    <h1>Algo deu errado</h1>
+    <p class="is-muted">
+      Ocorreu um erro inesperado no servidor. Tente novamente em instantes.
+    </p>
+
+    {{#if message}}
+      <pre class="error-trace">{{message}}</pre>
+    {{/if}}
+
+    <a class="btn btn--ghost" href="/admin">Voltar ao painel</a>
+  </div>
+</div>

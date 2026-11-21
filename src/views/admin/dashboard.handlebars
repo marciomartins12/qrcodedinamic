@@ -1,0 +1,101 @@
+<div class="stats">
+  <article class="stat">
+    <span class="stat__label">QR Codes cadastrados</span>
+    <strong class="stat__value">{{formatNumber stats.total}}</strong>
+    <span class="stat__meta">Sem limite de criacao</span>
+  </article>
+
+  <article class="stat">
+    <span class="stat__label">Ativos</span>
+    <strong class="stat__value">{{formatNumber stats.ativos}}</strong>
+    <span class="stat__meta">Redirecionando normalmente</span>
+  </article>
+
+  <article class="stat">
+    <span class="stat__label">Pausados</span>
+    <strong class="stat__value">{{formatNumber stats.inativos}}</strong>
+    <span class="stat__meta">Leitura bloqueada</span>
+  </article>
+
+  <article class="stat stat--highlight">
+    <span class="stat__label">Leituras totais</span>
+    <strong class="stat__value">{{formatNumber stats.cliques}}</strong>
+    <span class="stat__meta">{{formatNumber stats.comLeitura}} QR Codes ja foram lidos</span>
+  </article>
+</div>
+
+<div class="grid grid--2">
+  <section class="panel">
+    <header class="panel__head">
+      <h2>Ultimos QR Codes criados</h2>
+      <a class="btn btn--ghost btn--sm" href="/admin/qrcodes">Ver todos</a>
+    </header>
+
+    {{#if latest.length}}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Codigo</th>
+              <th>Status</th>
+              <th class="is-right">Leituras</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each latest}}
+              <tr>
+                <td><a href="/admin/qrcodes/{{this.id}}">{{this.title}}</a></td>
+                <td><span class="mono">{{this.code}}</span></td>
+                <td>
+                  {{#if this.active}}
+                    <span class="badge badge--on">Ativo</span>
+                  {{else}}
+                    <span class="badge badge--off">Pausado</span>
+                  {{/if}}
+                </td>
+                <td class="is-right">{{formatNumber this.clicks}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    {{else}}
+      <div class="empty">
+        <p>Nenhum QR Code criado ainda.</p>
+        <a class="btn btn--primary" href="/admin/qrcodes/novo">Criar o primeiro</a>
+      </div>
+    {{/if}}
+  </section>
+
+  <section class="panel">
+    <header class="panel__head">
+      <h2>Mais lidos</h2>
+    </header>
+
+    {{#if top.length}}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Destino</th>
+              <th class="is-right">Leituras</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each top}}
+              <tr>
+                <td><a href="/admin/qrcodes/{{this.id}}">{{this.title}}</a></td>
+                <td class="is-muted">{{shortUrl this.target_url 34}}</td>
+                <td class="is-right">{{formatNumber this.clicks}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    {{else}}
+      <div class="empty"><p>As estatisticas aparecem aqui depois da primeira leitura.</p></div>
+    {{/if}}
+  </section>
+</div>

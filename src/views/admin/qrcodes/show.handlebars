@@ -1,0 +1,107 @@
+<div class="detail-head">
+  <div>
+    <h2>{{qrcode.title}}</h2>
+    {{#if qrcode.description}}<p class="is-muted">{{qrcode.description}}</p>{{/if}}
+  </div>
+  <div class="detail-head__badges">
+    {{#if qrcode.active}}
+      <span class="badge badge--on">Ativo</span>
+    {{else}}
+      <span class="badge badge--off">Pausado</span>
+    {{/if}}
+    <span class="badge badge--neutral">{{formatNumber qrcode.clicks}} leituras</span>
+  </div>
+</div>
+
+<div class="layout-split">
+  <div class="split__main">
+    <section class="panel">
+      <header class="panel__head"><h2>Configuracao atual</h2></header>
+
+      <div class="panel__body">
+        <dl class="definition">
+          <div>
+            <dt>Link de destino</dt>
+            <dd>
+              <a class="link" href="{{qrcode.target_url}}" target="_blank" rel="noopener noreferrer">{{qrcode.target_url}}</a>
+            </dd>
+          </div>
+          <div>
+            <dt>Link que o QR carrega</dt>
+            <dd>
+              <span class="mono">{{scanUrl}}</span>
+              <button type="button" class="btn btn--ghost btn--xs" data-copy="{{scanUrl}}">Copiar</button>
+            </dd>
+          </div>
+          <div>
+            <dt>Codigo</dt>
+            <dd><span class="mono mono--lg">{{qrcode.code}}</span></dd>
+          </div>
+          <div>
+            <dt>Cor / Tamanho</dt>
+            <dd>
+              <span class="color-dot" style="background: {{qrcode.color}}"></span>
+              <span class="mono">{{qrcode.color}}</span> · {{formatSize qrcode.size_cm}}
+            </dd>
+          </div>
+          <div>
+            <dt>Criado em</dt>
+            <dd>{{formatDateTime qrcode.created_at}}</dd>
+          </div>
+          <div>
+            <dt>Ultima atualizacao</dt>
+            <dd>{{formatDateTime qrcode.updated_at}}</dd>
+          </div>
+          <div>
+            <dt>Ultima leitura</dt>
+            <dd>{{#if qrcode.last_click_at}}{{formatDateTime qrcode.last_click_at}}{{else}}Nenhuma leitura ainda{{/if}}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="panel">
+      <header class="panel__head"><h2>Acoes</h2></header>
+
+      <div class="panel__body">
+        <div class="row-actions row-actions--wrap">
+          <a class="btn btn--primary" href="/admin/qrcodes/{{qrcode.id}}/editar">Editar destino e aparencia</a>
+          <a class="btn btn--ghost" href="/admin/qrcodes/{{qrcode.id}}/download.png">Baixar PNG (300 dpi)</a>
+          <a class="btn btn--ghost" href="/admin/qrcodes/{{qrcode.id}}/imprimir" target="_blank" rel="noopener">Abrir folha de impressao</a>
+
+          <form method="post" action="/admin/qrcodes/{{qrcode.id}}/status">
+            <button type="submit" class="btn btn--ghost">
+              {{#if qrcode.active}}Pausar redirecionamento{{else}}Reativar redirecionamento{{/if}}
+            </button>
+          </form>
+
+          <form method="post" action="/admin/qrcodes/{{qrcode.id}}/excluir"
+                data-confirm="Excluir o QR Code &quot;{{qrcode.title}}&quot;? As placas ja impressas vao parar de funcionar.">
+            <button type="submit" class="btn btn--danger">Excluir QR Code</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="split__side">
+    <section class="panel panel--sticky">
+      <header class="panel__head"><h2>QR Code</h2></header>
+
+      <div class="panel__body">
+        <div class="qr-preview qr-preview--bordered">
+          <img class="qr-preview__img" alt="QR Code {{qrcode.title}}"
+               src="/admin/qrcodes/{{qrcode.id}}/qrcode.png?w=560">
+        </div>
+
+        <p class="qr-preview__note">
+          Tamanho de impressao: <strong>{{formatSize qrcode.size_cm}}</strong><br>
+          Teste sempre com a camera do celular antes de mandar para a grafica.
+        </p>
+
+        <a class="btn btn--primary btn--block" href="/admin/qrcodes/{{qrcode.id}}/download.png">Baixar PNG</a>
+        <a class="btn btn--ghost btn--block" href="/admin/qrcodes/{{qrcode.id}}/imprimir" target="_blank" rel="noopener">Imprimir</a>
+      </div>
+    </section>
+  </aside>
+</div>

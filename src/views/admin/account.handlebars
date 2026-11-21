@@ -1,0 +1,80 @@
+<div class="layout-split">
+  <div class="split__main">
+    <section class="panel">
+      <header class="panel__head">
+        <h2>Dados da conta</h2>
+      </header>
+
+      <div class="panel__body">
+        <form method="post" action="/admin/conta">
+          <div class="grid grid--2">
+            <div class="field">
+              <label class="field__label" for="name">Nome</label>
+              <input class="field__input" type="text" id="name" name="name" value="{{form.name}}" required maxlength="120">
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="email">E-mail de acesso</label>
+              <input class="field__input" type="email" id="email" name="email" value="{{form.email}}" required maxlength="180">
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <p class="section-note">
+            Para trocar o e-mail ou a senha, confirme a senha atual.
+            Deixe os campos de senha em branco para alterar apenas o nome.
+          </p>
+
+          <div class="grid grid--3">
+            <div class="field">
+              <label class="field__label" for="current_password">Senha atual</label>
+              <input class="field__input" type="password" id="current_password" name="current_password"
+                     autocomplete="current-password" placeholder="••••••••">
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="new_password">Nova senha</label>
+              <input class="field__input" type="password" id="new_password" name="new_password"
+                     autocomplete="new-password" minlength="8" placeholder="Minimo 8 caracteres">
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="confirm_password">Confirmar nova senha</label>
+              <input class="field__input" type="password" id="confirm_password" name="confirm_password"
+                     autocomplete="new-password" minlength="8" placeholder="Repita a nova senha">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary">Salvar alteracoes</button>
+            <a class="btn btn--ghost" href="/admin">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <aside class="split__side">
+    <section class="panel">
+      <header class="panel__head"><h2>Sessao</h2></header>
+
+      <div class="panel__body">
+        <dl class="definition">
+          <div>
+            <dt>Ultimo acesso</dt>
+            <dd>{{#if currentUser.last_login_at}}{{formatDateTime currentUser.last_login_at}}{{else}}—{{/if}}</dd>
+          </div>
+          <div>
+            <dt>Conta criada em</dt>
+            <dd>{{formatDate currentUser.created_at}}</dd>
+          </div>
+        </dl>
+
+        <form method="post" action="/admin/logout">
+          <button type="submit" class="btn btn--ghost btn--block">Encerrar sessao</button>
+        </form>
+      </div>
+    </section>
+  </aside>
+</div>

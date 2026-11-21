@@ -1,0 +1,112 @@
+<section class="panel">
+  <header class="panel__head panel__head--wrap">
+    <form class="toolbar" method="get" action="/admin/qrcodes">
+      <input class="input" type="search" name="q" value="{{filters.q}}" placeholder="Buscar por nome, codigo ou link...">
+
+      <select class="select" name="status">
+        <option value="todos" {{#ifEq filters.status "todos"}}selected{{/ifEq}}>Todos os status</option>
+        <option value="ativos" {{#ifEq filters.status "ativos"}}selected{{/ifEq}}>Somente ativos</option>
+        <option value="inativos" {{#ifEq filters.status "inativos"}}selected{{/ifEq}}>Somente pausados</option>
+      </select>
+
+      <select class="select" name="sort">
+        <option value="created_at" {{#ifEq filters.sort "created_at"}}selected{{/ifEq}}>Mais recentes</option>
+        <option value="title" {{#ifEq filters.sort "title"}}selected{{/ifEq}}>Nome</option>
+        <option value="clicks" {{#ifEq filters.sort "clicks"}}selected{{/ifEq}}>Mais lidos</option>
+        <option value="code" {{#ifEq filters.sort "code"}}selected{{/ifEq}}>Codigo</option>
+      </select>
+
+      <input type="hidden" name="dir" value="{{filters.dir}}">
+
+      <button type="submit" class="btn btn--ghost btn--sm">Filtrar</button>
+      <a class="btn btn--ghost btn--sm" href="/admin/qrcodes">Limpar</a>
+    </form>
+
+    <a class="btn btn--primary btn--sm" href="/admin/qrcodes/novo">+ Novo QR Code</a>
+  </header>
+
+  {{#if qrcodes.length}}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Codigo</th>
+            <th>Destino</th>
+            <th>Tam.</th>
+            <th>Status</th>
+            <th class="is-right">Leituras</th>
+            <th class="is-right">Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each qrcodes}}
+            <tr>
+              <td>
+                <a class="table__title" href="/admin/qrcodes/{{this.id}}">{{this.title}}</a>
+                {{#if this.description}}
+                  <small class="table__sub">{{truncate this.description 48}}</small>
+                {{/if}}
+              </td>
+
+              <td>
+                <button type="button" class="chip" data-copy="{{../appUrl}}/r/{{this.code}}" title="Copiar link de leitura">
+                  <span class="mono">{{this.code}}</span>
+                </button>
+              </td>
+
+              <td class="is-muted">{{shortUrl this.target_url 38}}</td>
+              <td class="is-muted">{{this.size_cm}} cm</td>
+
+              <td>
+                {{#if this.active}}
+                  <span class="badge badge--on">Ativo</span>
+                {{else}}
+                  <span class="badge badge--off">Pausado</span>
+                {{/if}}
+              </td>
+
+              <td class="is-right">
+                <strong>{{formatNumber this.clicks}}</strong>
+                {{#if this.last_click_at}}
+                  <small class="table__sub">{{formatDateTime this.last_click_at}}</small>
+                {{/if}}
+              </td>
+
+              <td class="is-right">
+                <div class="row-actions">
+                  <a class="btn btn--ghost btn--xs" href="/admin/qrcodes/{{this.id}}">Abrir</a>
+                  <a class="btn btn--ghost btn--xs" href="/admin/qrcodes/{{this.id}}/editar">Editar</a>
+                  <a class="btn btn--ghost btn--xs" href="/admin/qrcodes/{{this.id}}/download.png">PNG</a>
+
+                  <form method="post" action="/admin/qrcodes/{{this.id}}/status">
+                    <button type="submit" class="btn btn--ghost btn--xs">
+                      {{#if this.active}}Pausar{{else}}Ativar{{/if}}
+                    </button>
+                  </form>
+
+                  <form method="post" action="/admin/qrcodes/{{this.id}}/excluir"
+                        data-confirm="Excluir o QR Code &quot;{{this.title}}&quot;? As placas ja impressas vao parar de funcionar.">
+                    <button type="submit" class="btn btn--danger btn--xs">Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+
+    {{> pagination}}
+  {{else}}
+    <div class="empty">
+      {{#if (or filters.q (ne filters.status "todos"))}}
+        <p>Nenhum resultado para os filtros aplicados.</p>
+        <a class="btn btn--ghost" href="/admin/qrcodes">Limpar filtros</a>
+      {{else}}
+        <p>Voce ainda nao criou nenhum QR Code.</p>
+        <a class="btn btn--primary" href="/admin/qrcodes/novo">Criar QR Code</a>
+      {{/if}}
+    </div>
+  {{/if}}
+</section>
